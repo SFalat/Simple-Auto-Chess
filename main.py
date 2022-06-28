@@ -1,9 +1,15 @@
+import ast
+
 class gameEND(Exception):
     pass
 
 
 import random
 
+file = open("moveHistory.txt", "r+")
+lines = file.readlines()
+savedBoards = [line[:51] for line in lines]
+savedMoves = [line[52:] for line in lines]
 board = [
     ["O", "O", "O"],
     ["O", "O", "O"],
@@ -14,6 +20,7 @@ playerPositions = [[2, 0], [2, 1], [2, 2]]
 computerPositions = [[0, 0], [0, 1], [0, 2]]
 possibleMoves = {}
 computerPossibleMoves = {}
+
 
 
 def drawBoard():
@@ -43,6 +50,25 @@ def drawPawns():
 
 
 drawPawns()
+
+
+def findBoardstateInFile():
+    print(savedBoards)
+    if str(board) in savedBoards:
+        return True
+    else:
+        return False
+
+
+findBoardstateInFile()
+
+
+def writeMoveToFile(moves):
+    line = str(board) + " " + f"{moves}\n"
+    file.write(line)
+
+
+# def delateMoveFromFile():
 
 
 def checkMoves():
@@ -85,25 +111,34 @@ def chooseMove():
 
 
 def checkComputerMoves():
-    computerPossibleMoves.clear()
-    for position in computerPositions:
-        position = tuple(position)
-        computerPossibleMoves[position] = []
-        if board[position[0] + 1][position[1]] == "O":
-            computerPossibleMoves[position].append([position[0] + 1, position[1]])
+    global computerPossibleMoves
+    computerPossibleMoves = {}
+    print(type(computerPossibleMoves))
+    if findBoardstateInFile():
+        print(savedMoves[savedBoards.index(str(board))])
+        computerPossibleMoves = ast.literal_eval(savedMoves[savedBoards.index(str(board))])
+        print(f"possibleMoves {computerPossibleMoves}")
+    else:
+        print("teeeest")
+        for position in computerPositions:
+            position = tuple(position)
+            computerPossibleMoves[position] = []
+            if board[position[0] + 1][position[1]] == "O":
+                computerPossibleMoves[position].append([position[0] + 1, position[1]])
 
-        try:
-            if position[0] - 1 >= 0 and position[1] - 1 >= 0:
-                if board[position[0] + 1][position[1] - 1] == "G":
-                    computerPossibleMoves[position].append([position[0] + 1, position[1] - 1])
-            if position[0] + 1 >= 0:
-                if board[position[0] + 1][position[1] + 1] == "G":
-                    computerPossibleMoves[position].append([position[0] + 1, position[1] + 1])
-        except IndexError:
-            pass
+            try:
+                if position[0] - 1 >= 0 and position[1] - 1 >= 0:
+                    if board[position[0] + 1][position[1] - 1] == "G":
+                        computerPossibleMoves[position].append([position[0] + 1, position[1] - 1])
+                if position[0] + 1 >= 0:
+                    if board[position[0] + 1][position[1] + 1] == "G":
+                        computerPossibleMoves[position].append([position[0] + 1, position[1] + 1])
+            except IndexError:
+                pass
         if computerPossibleMoves[position] == []:
             computerPossibleMoves.pop(position)
-    print(computerPossibleMoves)
+        writeMoveToFile(computerPossibleMoves)
+    print(f'computerPossibleMoves:{computerPossibleMoves}')
 
 
 def chooseComputerMove():
@@ -129,7 +164,9 @@ def checkWinConditions():
         raise gameEND
 
 
+print(f'computerPossibleMoves1:{computerPossibleMoves}')
 checkComputerMoves()
+print(f'computerPossibleMoves2:{computerPossibleMoves}')
 # checkMoves()
 # print(playerPositions)
 # print(possibleMoves)
@@ -144,17 +181,25 @@ checkComputerMoves()
 
 while True:
     try:
-
+        print(f'computerPossibleMoves:{computerPossibleMoves}')
         drawPawns()
+        print(f'computerPossibleMoves:{computerPossibleMoves}')
         drawBoard()
+        print(f'computerPossibleMoves:{computerPossibleMoves}')
         checkMoves()
+        print(f'computerPossibleMoves:{computerPossibleMoves}')
         chooseMove()
+        print(f'computerPossibleMoves:{computerPossibleMoves}')
         drawPawns()
+        print(computerPossibleMoves)
         checkWinConditions()
         checkComputerMoves()
+        checkWinConditions()
         chooseComputerMove()
         drawPawns()
         checkWinConditions()
     except gameEND:
         print("Koniec!!!")
         exit()
+
+file.close()
